@@ -1,1 +1,37 @@
-# WeightLossChart
+var sourceFolder = Folder.selectDialog("Select a folder with AI files");
+
+if (sourceFolder) {
+    var pdfFolder = new Folder(sourceFolder + "/_PDF"); // Create _PDF folder
+    if (!pdfFolder.exists) pdfFolder.create(); // Create folder if it doesn't exist
+
+    var files = sourceFolder.getFiles("*.ai");
+
+    if (files.length === 0) {
+        alert("No AI files found in the selected folder.");
+    } else {
+        for (var i = 0; i < files.length; i++) {
+            var doc = app.open(files[i]); // Open AI file
+
+            if (doc.textFrames.length > 0) {
+                for (var j = 0; j < doc.textFrames.length; j++) {
+                    doc.textFrames[j].createOutline(); // Outline text
+                }
+            }
+
+            // Define new PDF filename with "_OL" inside the _PDF folder
+            var pdfFile = new File(pdfFolder + "/" + doc.name.replace(/\.ai$/, "_OL.pdf"));
+
+            // PDF Save Options
+            var pdfOptions = new PDFSaveOptions();
+            pdfOptions.compatibility = PDFCompatibility.ACROBAT6; // Acrobat 6 (PDF 1.5)
+            pdfOptions.preserveEditability = false; // Flatten PDF for smaller size
+
+            // Save as PDF in the _PDF folder
+            doc.saveAs(pdfFile, pdfOptions);
+
+            // Close the file WITHOUT saving changes to the AI
+            doc.close(SaveOptions.DONOTSAVECHANGES);
+        }
+        alert("Batch process complete! PDFs saved in the '_PDF' folder.");
+    }
+}
